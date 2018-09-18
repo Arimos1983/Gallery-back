@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Gallery;
+use App\User;
 
-class GalleriesController extends Controller
+class UsersController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -14,7 +14,7 @@ class GalleriesController extends Controller
      */
     public function index()
     {
-        return Gallery::with('image','user')->take(10)->latest()->get();
+
     }
 
     /**
@@ -46,7 +46,7 @@ class GalleriesController extends Controller
      */
     public function show($id)
     {
-        return Gallery::with('user', 'image')->find($id);
+        return User::with( 'gallery', 'gallery.image')->find($id);
     }
 
     /**
