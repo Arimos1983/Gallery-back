@@ -3,10 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Gallery;
-use App\Image;
+use App\Comment;
 
-class GalleriesController extends Controller
+class CommentsController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -15,7 +14,7 @@ class GalleriesController extends Controller
      */
     public function index()
     {
-        return Gallery::with('image','user')->take(10)->latest()->get();
+        //
     }
 
     /**
@@ -23,7 +22,7 @@ class GalleriesController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create(Request $request)
+    public function create()
     {
         //
     }
@@ -36,38 +35,9 @@ class GalleriesController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|min:2|max:255',
-            'description' => 'max:1000',
-            'images' => 'required',
-            'images.*' => ['url']
-        ]);
+       $comment = Comment::create($request->all());
 
-
-
-
-        $gallery = Gallery::create([
-
-            'name' => request('name'),
-            'description' => request('description'),
-            'user_id' => auth()->user()->id
-
-        ]);
-
-        $images = $request['images'];
-
-        foreach($images as $image){
-
-            $newimage = Image::create([
-
-            'imageUrl' => $image,
-            'gallery_id' => $gallery->id
-
-            ]);
-
-            $gallery->image()->save($newimage);
-        }
-
+       return Comment::with('user')->find($comment->id);
     }
 
     /**
@@ -78,7 +48,7 @@ class GalleriesController extends Controller
      */
     public function show($id)
     {
-        return Gallery::with('user', 'image', 'comment.user' )->find($id);
+        //
     }
 
     /**
