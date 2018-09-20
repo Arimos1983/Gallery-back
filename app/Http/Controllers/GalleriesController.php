@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Gallery;
+use App\Image;
 
 class GalleriesController extends Controller
 {
@@ -22,7 +23,7 @@ class GalleriesController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
         //
     }
@@ -35,7 +36,38 @@ class GalleriesController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|min:2|max:255',
+            'description' => 'max:1000',
+            'images' => 'required',
+            'images.*' => ['required', 'url']
+        ]);
+
+
+
+
+        $gallery = Gallery::create([
+
+            'name' => request('name'),
+            'description' => request('description'),
+            'user_id' => auth()->user()->id
+
+        ]);
+
+        $images = $request['images'];
+
+        foreach($images as $image){
+
+            $newimage = Image::create([
+
+            'imageUrl' => $image,
+            'gallery_id' => $gallery->id
+
+            ]);
+
+            $gallery->image()->save($newimage);
+        }
+
     }
 
     /**
