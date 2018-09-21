@@ -15,7 +15,47 @@ class GalleriesController extends Controller
      */
     public function index()
     {
-        return Gallery::with('image','user')->take(10)->latest()->get();
+        return Gallery::with('user', 'image')->take(10)->latest()->get();
+    }
+
+    public function getMore(Request $request)
+    {
+
+        $search = $request['search'];
+        $skip = $request['skip'];
+
+        $gallery = Gallery::query();
+
+        $gallery->with('user','image');
+        if($search !== ''){
+            $gallery->whereHas('user', function($query) use ($search){
+                $query->where('name', 'Like', '%'.$search.'%')
+                ->orWhere('description', 'Like', '%'.$search.'%')
+                ->orWhere('first_name', 'Like', '%'.$search.'%')
+                ->orWhere('last_name', 'Like', '%'.$search.'%');
+                });
+        }
+        return $gallery->skip($skip)->take(11)->get();
+    }
+
+    public function getUser($id, Request $request)
+    {
+        $search = $request['search'];
+        $skip = $request['skip'];
+
+        if($search != ''){
+        return Gallery::with('user', 'image')
+        ->where('user_id', $id)
+        ->where('name', 'like', '%'.$search.'%')
+        ->orWhere('description', 'like', '%'.$search.'%')
+        ->orderBy('created_at', 'DESC')
+        ->skip($skip)->take(11)->get();
+        }
+        else
+        {
+            return Gallery::with('user', 'image')->where('user_id', $id)->skip($skip)->take(11)->get();
+        }
+
     }
 
     /**
@@ -40,7 +80,7 @@ class GalleriesController extends Controller
             'name' => 'required|min:2|max:255',
             'description' => 'max:1000',
             'images' => 'required',
-            'images.*' => ['url']
+            'images.*' => ['required' ,'url']
         ]);
 
 
@@ -112,6 +152,15 @@ class GalleriesController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $gallery = Gallery::find($id);
+
+        if($gallery->user_id == auth()->user()->id)
+        {
+            return Gallery::destroy($id);
+        }
+        else
+        {
+            return response()->json(['message' => 'You can only delete gallery that is yours']);
+        }
     }
 }

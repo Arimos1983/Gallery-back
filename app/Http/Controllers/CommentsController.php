@@ -82,6 +82,15 @@ class CommentsController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $comment = Comment::find($id);
+
+        if($comment->user_id == auth()->user()->id)
+        {
+            return Comment::destroy($id);
+        }
+        else
+        {
+            return response()->json(['message' => 'You can only delete comment that is yours']);
+        }
     }
 }
