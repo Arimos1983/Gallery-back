@@ -19,7 +19,6 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::get('getuser/{id}', 'GalleriesController@getUser');
 Route::get('getmore', 'GalleriesController@getMore');
 Route::resource('galleries', 'GalleriesController');
-// Route::resource('users', 'UsersController');
 Route::resource('comments', 'CommentsController');
 
 

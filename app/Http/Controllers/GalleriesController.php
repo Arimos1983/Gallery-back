@@ -35,7 +35,7 @@ class GalleriesController extends Controller
                 ->orWhere('last_name', 'Like', '%'.$search.'%');
                 });
         }
-        return $gallery->skip($skip)->take(11)->get();
+        return $gallery->skip($skip)->take(11)->latest()->get();
     }
 
     public function getUser($id, Request $request)
@@ -53,7 +53,7 @@ class GalleriesController extends Controller
         }
         else
         {
-            return Gallery::with('user', 'image')->where('user_id', $id)->skip($skip)->take(11)->get();
+            return Gallery::with('user', 'image')->where('user_id', $id)->skip($skip)->take(11)->latest()->get();
         }
 
     }
@@ -80,7 +80,7 @@ class GalleriesController extends Controller
             'name' => 'required|min:2|max:255',
             'description' => 'max:1000',
             'images' => 'required',
-            'images.*' => ['required' ,'url']
+            'images.*' => ['regex:/^(http)?s?:?(\/\/[^\']*\.(?:png|jpg|jpeg))/']
         ]);
 
 
@@ -139,9 +139,43 @@ class GalleriesController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update($id, Request $request)
     {
-        //
+
+
+        $request->validate([
+            'name' => 'required|min:2|max:255',
+            'description' => 'max:1000',
+            'images' => 'required',
+            'images.*' => ['regex:/^(http)?s?:?(\/\/[^\']*\.(?:png|jpg|jpeg))/']
+        ]);
+
+        $gallery = Gallery::find($id);
+
+
+        if($gallery->user_id == auth()->user()->id)
+        {
+            $gallery->image()->delete();
+            $gallery->update($request->all());
+
+            $images = $request['images'];
+
+            foreach($images as $image){
+
+                $newimage = Image::create([
+
+                'imageUrl' => $image,
+                'gallery_id' => $gallery->id
+
+                ]);
+                $gallery->image()->save($newimage);
+            }
+            return $gallery;
+        }
+        else
+        {
+            return response()->json(['error' => 'You can only edit gallery that is yours']);
+        }
     }
 
     /**
@@ -160,7 +194,7 @@ class GalleriesController extends Controller
         }
         else
         {
-            return response()->json(['message' => 'You can only delete gallery that is yours']);
+            return response()->json(['error' => 'You can only delete gallery that is yours']);
         }
     }
 }
